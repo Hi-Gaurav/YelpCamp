@@ -7,12 +7,15 @@ const catchAsync = require('./utils/catchAsync');
 const ExpressError = require('./utils/ExpressError');
 const methodOverride = require('method-override');
 const Campground = require('./models/campground');
+const session = require('express-session')
+const flash = require('connect-flash')
 //const router = require('express.Router')
 const Review = require('./models/review');
 //const campgroundRoutes = require('./routes/campgrounds')
 
 const campgrounds = require('./routes/campgrounds')
-const reviews = require('./routes/reviews')
+const reviews = require('./routes/reviews');
+const { cookie } = require('express/lib/response');
 
 mongoose.connect('mongodb://localhost:27017/yelp-camp', {
 });
@@ -32,11 +35,31 @@ app.set('views', path.join(__dirname, 'views'))
 app.use(express.urlencoded({ extended: true }));
 app.use(methodOverride('_method'));
 
+const sessionConfig = {
+    secret:'thisshouldbesecret!',
+    resave:false,
+    saveUninitialized: true,
+    cookie :{
+        httpOnly: true,
+        expires: Date.now() + 3600000*24*7,
+        maxAge : 3600000*24*7
+    }
+}
+app.use(session(sessionConfig))
+app.use(flash());
 
+
+app.use((req, res, next) => {
+    res.locals.success = req.flash('success');
+    res.locals.error = req.flash('error');
+    next();
+})
 
 
 app.use('/campgrounds', campgrounds)
 app.use('/campgrounds/:id/reviews', reviews)
+//app.use(express.static('public'))
+app.use(express.static(path.join(__dirname, 'public')))
 
 app.get('/', (req, res) => {
     res.render('home')
