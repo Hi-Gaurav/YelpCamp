@@ -2,3 +2,4 @@
 /.idea
 .eslintignore
 .eslintrc.js
+.env
