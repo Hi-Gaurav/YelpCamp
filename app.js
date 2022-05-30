@@ -18,6 +18,7 @@ const ExpressError = require('./utils/ExpressError');
 const Campground = require('./models/campground');
 const Review = require('./models/review');
 const User = require('./models/user');
+const mongoSanitize = require('express-mongo-sanitize')
 
 const userRoutes = require('./routes/users');
 // const campgroundRoutes = require('./routes/campgrounds');
@@ -43,13 +44,16 @@ app.set('views', path.join(__dirname, 'views'));
 
 app.use(express.urlencoded({ extended: true }));
 app.use(methodOverride('_method'));
+app.use(mongoSanitize());
 
 const sessionConfig = {
+  name: 'session',
   secret: 'thisshouldbesecret!',
   resave: false,
   saveUninitialized: true,
   cookie: {
     httpOnly: true,
+    //secure: true,
     expires: Date.now() + 3600000 * 24 * 7,
     maxAge: 3600000 * 24 * 7,
   },
@@ -65,7 +69,7 @@ passport.serializeUser(User.serializeUser());
 passport.deserializeUser(User.deserializeUser());
 
 app.use((req, res, next) => {
-  // console.log(req.session)
+  console.log(req.query)
   res.locals.currentUser = req.user;
   res.locals.success = req.flash('success');
   res.locals.error = req.flash('error');
